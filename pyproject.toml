@@ -1,0 +1,27 @@
+[project]
+name = "alert-analysis-llm"
+version = "0.1.0"
+description = "Microservices reference implementation for automated alert RCA"
+authors = [{name = "AIOps Team"}]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.24",
+    "httpx>=0.27",
+    "pydantic>=1.10",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+    "structlog>=24.1",
+    "prometheus-client>=0.19",
+    "beautifulsoup4>=4.12",
+    "imapclient>=3.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23"
+]
+
+[tool.ruff]
+line-length = 100

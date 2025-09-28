@@ -1,0 +1,35 @@
+service:
+  name: email-ingest
+  host: 0.0.0.0
+  port: 8001
+logging:
+  level: INFO
+  json: true
+mailboxes:
+  - type: imap
+    enabled: true
+    interval_seconds: 60
+    idle: true
+    imap_host: ${IMAP_HOST}
+    imap_port: 993
+    username: ${IMAP_USER}
+    password: ${IMAP_PASS}
+    folder: INBOX
+    search_filter: '(UNSEEN)'
+    rca_endpoint: http://orchestrator:8003/events
+  - type: msgraph
+    enabled: false
+    tenant_id: ${AZURE_TENANT_ID}
+    client_id: ${AZURE_CLIENT_ID}
+    client_secret: ${AZURE_CLIENT_SECRET}
+    user_id: ${GRAPH_USER_ID}
+    webhook_url: http://ingest:8001/msgraph/webhook
+    rca_endpoint: http://orchestrator:8003/events
+webhooks:
+  alertmanager:
+    enabled: true
+    rca_endpoint: http://orchestrator:8003/events
+    shared_secret: ${WEBHOOK_SHARED_SECRET}
+observability:
+  metrics_port: 9301
+  histogram_buckets: [0.1, 0.25, 0.5, 1.0, 2.0, 5.0]

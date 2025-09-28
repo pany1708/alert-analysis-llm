@@ -1,0 +1,16 @@
+service:
+  name: qwen-rca
+  host: 0.0.0.0
+  port: 8002
+logging:
+  level: INFO
+  json: true
+qwen:
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  model: qwen-plus
+  temperature: 0.1
+  api_key_env: QWEN_API_KEY
+  request_timeout_seconds: 30
+observability:
+  metrics_port: 9302
+  histogram_buckets: [0.1, 0.25, 0.5, 1.0, 2.0, 5.0]

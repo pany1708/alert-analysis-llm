@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  ingest:
+    build:
+      context: .
+      dockerfile: docker/ingest.Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      IMAP_HOST: imap.example.com
+      IMAP_USER: alerts@example.com
+      IMAP_PASS: change-me
+      WEBHOOK_SHARED_SECRET: dev-secret
+      RCA_ENDPOINT: http://orchestrator:8003/events
+    volumes:
+      - ./config:/app/config:ro
+      - ./services:/app/services:ro
+      - ./policies:/app/policies:ro
+    depends_on:
+      - orchestrator
+  rca:
+    build:
+      context: .
+      dockerfile: docker/rca.Dockerfile
+    environment:
+      QWEN_API_KEY: ${QWEN_API_KEY}
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./config:/app/config:ro
+      - ./services:/app/services:ro
+  orchestrator:
+    build:
+      context: .
+      dockerfile: docker/orchestrator.Dockerfile
+    environment:
+      APPROVAL_WEBHOOK: https://hooks.slack.com/services/xxx
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./config:/app/config:ro
+      - ./services:/app/services:ro
+      - ./policies:/app/policies:ro
+    depends_on:
+      - rca

@@ -1,0 +1,65 @@
+# Remediation policy mapping from alert type to evidence gathering and actions
+prometheus_remote_write_behind:
+  severity: P2
+  evidence:
+    - type: promql
+      query: rate(prometheus_remote_storage_highest_timestamp_in_seconds[5m])
+      description: "Check remote write lag trend"
+    - type: log
+      target: prometheus
+      filter: "remote storage reshard"
+  diagnosis_rules:
+    - when: metrics.times >= 3
+      then: "Prometheus remote write has been lagging repeatedly"
+    - when: labels.cluster == "HK-DCE5-PLATFORM"
+      then: "Cluster specific SLA breach"
+  actions:
+    safe:
+      - type: k8s
+        verb: rollout-restart
+        resource: deployment/prometheus-agent
+      - type: prom
+        operation: silence
+        params:
+          duration: 15m
+          matchers:
+            - name: alertname
+              value: PrometheusRemoteWriteBehind
+    risky:
+      approval_required: true
+      steps:
+        - type: k8s
+          verb: delete-pod
+          resource: pod/prometheus-insight-agent-kube-prometh-prometheus-0
+  rollback:
+    - type: k8s
+      verb: rollout-undo
+      resource: deployment/prometheus-agent
+jenkins_master_restarted:
+  severity: P3
+  evidence:
+    - type: http
+      endpoint: http://jenkins.example.com/login
+      description: "Verify Jenkins UI availability"
+  actions:
+    safe:
+      - type: slack
+        message: "Jenkins master restarted; verifying pipeline backlogs"
+  rollback: []
+vmalert_config_sync_failed:
+  severity: P2
+  evidence:
+    - type: promql
+      query: rate(vmalert_config_last_reload_successful[5m])
+      description: "Monitor last reload status"
+  actions:
+    safe:
+      - type: vm
+        operation: config-reload
+        params:
+          instance: vmalert-prod-0
+  rollback:
+    - type: vm
+      operation: config-rollback
+      params:
+        version: previous
